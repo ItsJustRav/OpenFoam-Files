@@ -1,2 +1,2 @@
-# OpenFoam-Files
-OpenFoam files
+# OpenFOAM-Files
+Various OpenFOAM scripts and dictionaries
