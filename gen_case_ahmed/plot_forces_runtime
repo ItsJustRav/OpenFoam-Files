@@ -1,0 +1,10 @@
+set title "Forces"
+set xlabel 'Iteration'
+set ylabel 'Force'
+plot '<sed -e "s/[(,)]//g" postProcessing/forces_object/0/forces.dat' using 1:2 title 'fx' with lines,\
+'<sed -e "s/[(,)]//g" postProcessing/forces_object/0/forces.dat' using 1:3 with lines title 'fy',\
+'<sed -e "s/[(,)]//g" postProcessing/forces_object/0/forces.dat' using 1:4 with lines title 'fz',\
+
+
+pause 2
+reread
