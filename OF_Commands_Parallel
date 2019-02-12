@@ -1,0 +1,79 @@
+# List of commands for running a case in Parallel.
+# -------------------------------------------------------------------------------------------------------
+
+# Clean the case directory
+foamCleanTutorials
+foamCleanPolyMesh
+
+# Generating the background mesh
+blockMesh
+
+# Extract surface features
+surfaceFeatureExtract -dict system/surfaceFeatureExtractDict
+
+# Decompose case for parallel run
+decomposePar
+
+# Mesh using snappyHexMesh in parallel- RUN1
+mpirun -np 4 snappyHexMesh -parallel -dict system/snappyHexMeshDict
+
+# Check mesh in parallel
+mpirun -np 4 checkMesh -parallel 
+
+# Reconstruct Mesh
+reconstructParMesh
+
+# To transfer the desired mesh to constant/polyMesh and remove mesh generation steps
+rm -rf constant/polyMesh/
+cp -r 6/polyMesh/ constant/
+foamListTimes -rm
+
+# To remove 0 folder and replace with 0_org contents
+rm -rf 0
+cp -r 0_org 0
+
+# Decompose case for parallel run
+decomposePar -force
+
+# Renumber mesh
+mpirun -np 4 renumberMesh -parallel -overwrite
+
+# Run Potential solver
+mpirun -np 4 potentialFoam -initialiseUBCs -noFunctionObjects -parallel
+
+# Run chosen solver
+mpirun -np 4 simpleFoam -parallel > log.simplefoam | tail -f log.simplefoam
+
+# Reconstruct case
+reconstructPar
+
+
+
+# Plotting residuals (open a new Terminal)
+# -------------------------------------------------------------------------------------------------------
+
+gnuplot residuals
+gnuplot coeffs
+gnuplot forces
+
+
+
+# Post processing
+# -------------------------------------------------------------------------------------------------------
+
+# Extract yPlus (reconstructed)
+simpleFoam -postProcess -func yPlus -latestTime
+
+# Extract wall Shear Stress (reconstructed)
+simpleFoam -postProcess -func wallShearStress -latestTime
+
+# Extract wall Shear Stress (decomposed)
+mpirun -np 4 simpleFoam -parallel -postProcess -func wallShearStress -latestTime
+
+# Extract yPlus (decomposed)
+mpirun -np 4 simpleFoam -parallel -postProcess -func yPlus -latestTime
+
+# Open ParaView to visualise results
+paraFoam -builtin
+
+

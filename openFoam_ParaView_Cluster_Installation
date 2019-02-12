@@ -1,30 +1,30 @@
-#################################################################################################################################################
-#-------------------------------------------------------OpenFOAM-dev build on the cluster-------------------------------------------------------#
-#								Date: 27/01/2019								#
-#################################################################################################################################################
+# ################################################################################################################################################
+# -------------------------------------------------------OpenFOAM-dev build on the cluster-------------------------------------------------------#
+# 								Date: 27/01/2019								#
+# ################################################################################################################################################
 
-## SSH into the cluster
+# # SSH into the cluster
 
 ssh <username>@oswald
 
-### Note: if @oswald returns an error, try "ssh <username>@192.168.85.140". 
-### If this works, please add "192.168.85.140 oswald" to your "hosts" file in "/etc/hosts/" and you will be able to use ssh <username>@oswald
+# ## Note: if @oswald returns an error, try "ssh <username>@192.168.85.140". 
+# ## If this works, please add "192.168.85.140 oswald" to your "hosts" file in "/etc/hosts/" and you will be able to use ssh <username>@oswald
 
 
 
-## Load required modules
+# # Load required modules
 
 module load openmpi/intel-opa/gcc-hfi/64/1.10.4
 
-### Note: DO NOT load the python modules available in the module list. These will cause errors in ParaView installation.
-### Instead, use the default python2.7 already available in the system.
+# ## Note: DO NOT load the python modules available in the module list. These will cause errors in ParaView installation.
+# ## Instead, use the default python2.7 already available in the system.
 
-### Note: if you are returning back to a partial installation (new SSH), make sure "ofdev" shell environment is initiated
-### by typing "ofdev"
+# ## Note: if you are returning back to a partial installation (new SSH), make sure "ofdev" shell environment is initiated
+# ## by typing "ofdev"
 
 
 
-## Make OpenFOAM directory, change to and download source
+# # Make OpenFOAM directory, change to and download source
 
 cd ~mkdir OpenFOAM
 cd OpenFOAM
@@ -33,20 +33,20 @@ git clone https://github.com/OpenFOAM/ThirdParty-dev.git
 
 
 
-## Download necessary packages for ‘Thirdparty-dev’ folder
+# # Download necessary packages for ‘Thirdparty-dev’ folder
 
 wget -P download  https://www.cmake.org/files/v3.9/cmake-3.9.0.tar.gz
 wget -P download  https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.10/CGAL-4.10.tar.xz
 wget -P download https://sourceforge.net/projects/boost/files/boost/1.55.0/boost_1_55_0.tar.bz2
 wget -P download http://www.paraview.org/files/v5.4/ParaView-v5.4.0.tar.gz
 
-### Note: "openmpi-2.1.1" suplied by OpenFOAM is excluded, instead custom cluster provided "openmpi/intel-opa/gcc-hfi/64/1.10.4"
-### is used the custom library has been modified to use the faster Intel OmniPath connection (100Gb/s). Else it would default
-### to and overload the management network (1Gb/s).
+# ## Note: "openmpi-2.1.1" suplied by OpenFOAM is excluded, instead custom cluster provided "openmpi/intel-opa/gcc-hfi/64/1.10.4"
+# ## is used the custom library has been modified to use the faster Intel OmniPath connection (100Gb/s). Else it would default
+# ## to and overload the management network (1Gb/s).
 
 
 
-## Unpack the downloaded packages
+# # Unpack the downloaded packages
 
 tar -xzf download/cmake-3.9.0.tar.gz
 tar -xJf download/CGAL-4.10.tar.xz 
@@ -56,30 +56,30 @@ cd ..
 
 
 
-## Change default Boost and CGAL versions (using one provided with OpenFOAM)
+# # Change default Boost and CGAL versions (using one provided with OpenFOAM)
 
 sed -i -e 's/\(boost_version=\)boost-system/\1boost_1_55_0/' OpenFOAM-dev/etc/config.sh/CGAL
 sed -i -e 's/\(cgal_version=\)cgal-system/\1CGAL-4.10/' OpenFOAM-dev/etc/config.sh/CGAL
 
 
 
-## Select the compiler, set 64-bit integer support and set to install FOAMY_HEX_MESH
+# # Select the compiler, set 64-bit integer support and set to install FOAMY_HEX_MESH
 
 source $HOME/OpenFOAM/OpenFOAM-dev/etc/bashrc WM_COMPILER_TYPE=ThirdParty WM_COMPILER=Gcc48 FOAMY_HEX_MESH=yes
 
-### Note: GCC 4.8.5 provided with OpenFOAM selected as the one in the cluster showed missing libraries.
+# ## Note: GCC 4.8.5 provided with OpenFOAM selected as the one in the cluster showed missing libraries.
 
 
 
-## Save alias to personal .bashrc file
+# # Save alias to personal .bashrc file
 
 echo "alias ofdev='source \$HOME/OpenFOAM/OpenFOAM-dev/etc/bashrc $FOAM_SETTINGS'" >> $HOME/.bashrc
 
-### Note: you may get a "cannot find installation" warning regarding the GCC compiler. Ignore this for now.
+# ## Note: you may get a "cannot find installation" warning regarding the GCC compiler. Ignore this for now.
 
 
 
-## Build CMake
+# # Build CMake
 
 cd $WM_THIRD_PARTY_DIR
 ./makeCmake > log.makeCM 2>&1
@@ -87,7 +87,7 @@ WmRefresh
 
 
 
-## Get scripts needed to build GCC and binutils
+# # Get scripts needed to build GCC and binutils
 
 cd $WM_THIRD_PARTY_DIR
 wget https://raw.github.com/wyldckat/scripts4OpenFOAM3rdParty/master/getGcc
@@ -97,7 +97,7 @@ chmod +x get* make*
 
 
 
-## Get and build GCC 4.8.5 and supporting packages
+# # Get and build GCC 4.8.5 and supporting packages
 
 ./getGcc gcc-4.8.5 gmp-5.1.2 mpfr-3.1.2 mpc-1.0.1
 ./makeGcc -no-multilib > log.makeGcc 2>&1
@@ -105,14 +105,14 @@ WmRefresh
 
 
 
-## Get and build GNU binutils
+# # Get and build GNU binutils
 
 ./getBinutils
 ./makeBinutils gcc-4.8.5 > log.makeBinutils 2>&1
 
 
 
-## Build thirdparty folder
+# # Build thirdparty folder
 
 cd $WM_THIRD_PARTY_DIR
 ./Allwmake > log.make 2>&1
@@ -120,27 +120,27 @@ WmRefresh
 
 
 
-## Build ParaView with python and mpi support
-### Note: make sure the correct modules are loaded (refer to the begining of this document)
+# # Build ParaView with python and mpi support
+# ## Note: make sure the correct modules are loaded (refer to the begining of this document)
 
 ./makeParaView -python -mpi > log.makePV 2>&1
 wmRefresh
 
-### Check if the installation progressed without error from the "log.makePV"
+# ## Check if the installation progressed without error from the "log.makePV"
 
 
 
-## Build OpenFOAM (single core)
+# # Build OpenFOAM (single core)
 
 cd $WM_PROJECT_DIR
 ./Allwmake -j 1 > log.make 2>&1
 
-### Note: Will take 3-4 hours on a single core. For multiple cores, change "-j 1" to "-j x" (x being the number of cores to use)
-### To get summary of installation, run the above command again and read the "log.make"
+# ## Note: Will take 3-4 hours on a single core. For multiple cores, change "-j 1" to "-j x" (x being the number of cores to use)
+# ## To get summary of installation, run the above command again and read the "log.make"
 
 
 
-## Check if everything works
+# # Check if everything works
 
 simpleFoam -help
 

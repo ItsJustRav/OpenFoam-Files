@@ -1,4 +1,5 @@
-# List of commands for running the case.
+# List of commands for running the case in series.
+# -------------------------------------------------------------------------------------------------------
 
 # Clean the case directory
 foamCleanTutorials
@@ -13,10 +14,6 @@ surfaceFeatureExtract -dict system/surfaceFeatureExtractDict
 # Mesh using snappyHexMesh
 snappyHexMesh -dict system/snappyHexMeshDict
 
-# Add layers to supports using snappyHexMesh 
-# ***repeat 4x with edited layer thickness
-snappyHexMesh -dict system/snappyHexMeshDict1
-
 # Check mesh using CLI
 checkMesh
 
@@ -24,7 +21,6 @@ checkMesh
 rm -rf constant/polyMesh/
 
 # Copy the desired mesh to the 'polyMesh' in 'constant' directory 
-# ****check if ground is slip
 cp -r 11/polyMesh constant/
 
 # Remove intermediate stages (steps) of mesh generation
@@ -39,17 +35,20 @@ potentialFoam -initialiseUBCs -noFunctionObjects
 # Run the simpleFoam solver and generate 'log.simplefoam' then show the tail of the log file
 simpleFoam > log.simplefoam | tail -f log.simplefoam
 
-# Plot residuals (open a new Terminal)
+
+
+
+# Plotting residuals (open a new Terminal)
+# -------------------------------------------------------------------------------------------------------
+
 gnuplot residuals
-
-# Plot residuals (open a new Terminal)
 gnuplot coeffs
-
-# Plot residuals (open a new Terminal)
 gnuplot forces
 
-# Open ParaView to visualise results
-paraFoam -builtin
+
+
+# Post processing
+# -------------------------------------------------------------------------------------------------------
 
 # Extract wall Shear Stress
 simpleFoam -postProcess -func wallShearStress -latestTime
