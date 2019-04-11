@@ -15,10 +15,10 @@ surfaceFeatureExtract -dict system/surfaceFeatureExtractDict
 decomposePar
 
 # Mesh using snappyHexMesh in parallel- RUN1
-mpirun -np 4 snappyHexMesh -parallel -dict system/snappyHexMeshDict
+mpirun -np 8 snappyHexMesh -parallel -dict system/snappyHexMeshDict
 
 # Check mesh in parallel
-mpirun -np 4 checkMesh -parallel 
+mpirun -np 8 checkMesh -parallel 
 
 # Reconstruct Mesh
 reconstructParMesh
@@ -36,13 +36,13 @@ cp -r 0_org 0
 decomposePar -force
 
 # Renumber mesh
-mpirun -np 4 renumberMesh -parallel -overwrite
+mpirun -np 8 renumberMesh -parallel -overwrite
 
 # Run Potential solver
-mpirun -np 4 potentialFoam -initialiseUBCs -noFunctionObjects -parallel
+mpirun -np 8 potentialFoam -initialiseUBCs -noFunctionObjects -parallel
 
 # Run chosen solver
-mpirun -np 4 simpleFoam -parallel > log.simplefoam | tail -f log.simplefoam
+mpirun -np 8 simpleFoam -parallel > log.simplefoam | tail -f log.simplefoam
 
 # Reconstruct case
 reconstructPar
@@ -68,10 +68,10 @@ simpleFoam -postProcess -func yPlus -latestTime
 simpleFoam -postProcess -func wallShearStress -latestTime
 
 # Extract wall Shear Stress (decomposed)
-mpirun -np 4 simpleFoam -parallel -postProcess -func wallShearStress -latestTime
+mpirun -np 8 simpleFoam -parallel -postProcess -func wallShearStress -latestTime
 
 # Extract yPlus (decomposed)
-mpirun -np 4 simpleFoam -parallel -postProcess -func yPlus -latestTime
+mpirun -np 8 simpleFoam -parallel -postProcess -func yPlus -latestTime
 
 # Open ParaView to visualise results
 paraFoam -builtin
