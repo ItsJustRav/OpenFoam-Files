@@ -1,0 +1,44 @@
+#!/bin/bash
+
+## Commands have been commented out with "##". Un-comment as needed.
+## Alternatively, copy the needed to main run script.
+
+####################################
+# Set up submit to ...
+#SBATCH --job-name="JobName"
+#SBATCH --time=12:00:00
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=24
+#SBATCH --error=err_%job-name.log
+#SBATCH --output=out_%job-name.log
+#SBATCH --mail-user=email@uni.ac.uk
+#SBATCH --mail-type=<ALL>
+#SBATCH --partition=que
+####################################
+
+nodes=$SLURM_JOB_NUM_NODES            # Number of nodes
+cores=$SLURM_CPUS_ON_NODE             # number of cores
+
+# Load Modules and setup
+## Commented out due to these being included in .bashrc file for load at login.
+## module load openmpi/intel-opa/gcc-hfi/64/1.10.4
+## ofdev
+sed -i "/numberOfSubdomains/c\\numberOfSubdomains    $(($nodes*$cores));" system/decomposeParDict
+
+# Extract yPlus (reconstructed)
+## simpleFoam -postProcess -func yPlus -latestTime
+
+# Extract wall Shear Stress (reconstructed)
+## simpleFoam -postProcess -func wallShearStress -latestTime
+
+# Decompose case for parallel run
+## decomposePar
+
+# Extract wall Shear Stress (decomposed)
+## mpirun -np $(($nodes*cores)) simpleFoam -parallel -postProcess -func wallShearStress -latestTime
+
+# Extract yPlus (decomposed)
+## mpirun -np $(($nodes*cores)) simpleFoam -parallel -postProcess -func yPlus -latestTime
+
+# Create casename.foam for ParaView on Vis node
+## touch "${PWD##*/}".txt

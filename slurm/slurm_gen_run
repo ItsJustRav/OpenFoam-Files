@@ -1,0 +1,63 @@
+#!/bin/bash
+
+####################################
+# Set up submit to ...
+#SBATCH --job-name="JobName"
+#SBATCH --time=12:00:00
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=24
+#SBATCH --error=err_%job-name.log
+#SBATCH --output=out_%job-name.log
+#SBATCH --mail-user=email@uni.ac.uk
+#SBATCH --mail-type=<ALL>
+#SBATCH --partition=que
+####################################
+
+nodes=$SLURM_JOB_NUM_NODES            # Number of nodes
+cores=$SLURM_CPUS_ON_NODE             # number of cores
+
+# Load Modules and setup
+## Commented out due to these being included in .bashrc file for load at login.
+## module load openmpi/intel-opa/gcc-hfi/64/1.10.4
+## ofdev
+sed -i "/numberOfSubdomains/c\\numberOfSubdomains    $(($nodes*$cores));" system/decomposeParDict
+
+# Decompose case for parallel run
+decomposePar
+
+# Meshing Commands
+# Insert as required (conversions, generations, etc.)
+
+# Check mesh in parallel
+mpirun -np $(($nodes*cores)) checkMesh -parallel
+
+# Reconstruct Mesh
+reconstructParMesh
+
+# Other Mesh Operations
+# Insert other mesh operations (replace polymesh, delete time steps, etc.)
+
+# To remove 0 folder and replace with 0_org contents
+rm -rf 0
+cp -r 0_org 0
+
+# Decompose case for parallel run
+decomposePar -force
+
+# Renumber mesh
+mpirun -np $(($nodes*cores)) renumberMesh -parallel -overwrite
+
+# Run Potential solver
+mpirun -np $(($nodes*cores)) potentialFoam -initialiseUBCs -noFunctionObjects -parallel
+
+# Run chosen solver
+mpirun -np $(($nodes*cores)) simpleFoam -parallel
+
+# Reconstruct case (if required)
+## reconstructPar
+
+# Post processing
+## Post processing scripts
+
+# Create casename.foam for ParaView on Vis node
+touch "${PWD##*/}".txt
