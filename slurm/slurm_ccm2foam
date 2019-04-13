@@ -1,0 +1,40 @@
+#!/bin/bash
+
+## Commands have been commented out with "##". Un-comment as needed.
+## Alternatively, copy the needed to main run script.
+
+####################################
+# Set up submit to ...
+#SBATCH --job-name="JobName"
+#SBATCH --time=12:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=$SLURM_CPUS_ON_NODE
+#SBATCH --error=err_%job-name.log
+#SBATCH --output=out_%job-name.log
+#SBATCH --mail-user=email@uni.ac.uk
+#SBATCH --mail-type=<ALL>
+#SBATCH --partition=que
+####################################
+
+nodes=$SLURM_JOB_NUM_NODES            # Number of nodes
+cores=$SLURM_CPUS_ON_NODE             # number of cores
+
+# Load Modules and setup
+## Commented out due to these being included in .bashrc file for load at login.
+## module load openmpi/intel-opa/gcc-hfi/64/1.10.4
+## ofdev
+sed -i "/numberOfSubdomains/c\\numberOfSubdomains    $(($nodes*$cores));" system/decomposeParDict
+
+
+# Convert StarCCM mesh to Polymesh (only works in parallel)
+ccm26ToFoam <meshname.ccm>
+
+# Move 0 folder files generated to 0_org and backup mesh
+mkdir -p 0_org && mv 0/cellId 0/cellType 0_org
+cp -r constant/polyMesh constant/polyMesh.backup
+
+# Decompose case for parallel run
+decomposePar
+
+# Check mesh in parallel
+mpirun -np $(($nodes*cores)) checkMesh -parallel
