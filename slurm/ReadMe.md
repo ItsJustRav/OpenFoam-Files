@@ -11,3 +11,7 @@ A generic job submission scripts for OpenFOAM jobs (complete run) in a HPC. Sect
 ## Generic SLURM Post Processing Script: [slurm_postproc](/slurm/slurm_postproc)
 
 A generic job submission scripts for OpenFOAM post processing. The post processing functions needed must be edited/added accordingly.
+
+## StarCCM mesh to Polymesh Conversion: [slurm_ccm2foam](/slurm/slurm_ccm2foam)
+
+Converts .CCM (StarCCM) meshes to OpenFOAM compatible mesh files. The conversion only supports serial however the checkMesh is run in parallel.
